@@ -16,7 +16,8 @@ RUN npm ci --only=production
 COPY . .
 
 #Add multi-stage build
-FROM alpine:3.16.7
+# Minimal Alpine
+FROM alpine:3.16
 
 WORKDIR /app
 
