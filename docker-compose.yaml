@@ -49,15 +49,14 @@ services:
   #Creates the database microservice
   mongo:
     image: mongo6.0
-    container_name: app-mongo
+    container_name: yolo-mongo
     ports:
       - "27017:27017"
     networks:
-      - app-net
+      - yolo-net
     volumes:
-      - type: volume
-        source: app-mongo-data
-        target: /data/db
+      - yolo-mongo-data:/data/db
+    restart: always
 
 #Creates the network infrastructure necessary for the containers to communicate with each other
 networks:
