@@ -30,7 +30,7 @@ services:
 
   #Builds the backend Docker image and creates the backend microservice
   gibwanjau0-yolo-backend:
-    image: gibwanjau0/brigibwanjau0an-yolo-backend:v1.0.0
+    image: gibwanjau0/gibwanjau0-yolo-backend:v1.0.0
     build:
       context: ./backend
       args:
