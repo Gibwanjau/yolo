@@ -25,7 +25,9 @@ RUN apk add --no-cache nodejs && \
     adduser -D myuser && \
     chown -R myuser:myuser /app
 
-COPY --from=build /usr/src/app /app
+# Copy built files from builder
+COPY --from=builder --chown=myuser:myuser /usr/src/app ./
+
 
 # Expose the port the app runs on
 EXPOSE 5000
