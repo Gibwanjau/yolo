@@ -22,15 +22,20 @@ services:
     ports:
       - "3000:3000"
     depends_on: 
-      - brian-yolo-backend
+      - gibwanjau0-yolo-backend
     networks:
-      - app-net
+      - yolo-net
+    restart: unless-stopped
+
 
   #Builds the backend Docker image and creates the backend microservice
-  brian-yolo-backend:
-    image: brianbwire/brian-yolo-backend:v1.0.0
-    build: ./backend
-    container_name: brian-yolo-backend
+  gibwanjau0-yolo-backend:
+    image: gibwanjau0/brigibwanjau0an-yolo-backend:v1.0.0
+    build:
+      context: ./backend
+      args:
+        NODE_ENV: production
+    container_name: gibwanjau0-yolo-backend
     stdin_open: true
     tty: true
     restart: always
@@ -42,8 +47,8 @@ services:
       - app-net
 
   #Creates the database microservice
-  app-ip-mongo:
-    image: mongo
+  mongo:
+    image: mongo6.0
     container_name: app-mongo
     ports:
       - "27017:27017"
