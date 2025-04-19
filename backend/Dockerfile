@@ -21,7 +21,9 @@ FROM alpine:3.16
 
 WORKDIR /app
 
-RUN apk update && apk add --update nodejs
+RUN apk add --no-cache nodejs && \
+    adduser -D myuser && \
+    chown -R myuser:myuser /app
 
 COPY --from=build /usr/src/app /app
 
