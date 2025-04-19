@@ -1,28 +1,27 @@
-# Use an official Node runtime as a parent image
-FROM node:14-slim AS build
-
-# Set the working directory in the container
+# Stage 1: Build (Node.js)
+FROM node:16-alpine AS builder
 WORKDIR /usr/src/app
 
-# Copy the package.json and package-lock.json files to the container
+# Install dependencies separately for better caching
 COPY package*.json ./
-
-# Install application dependencies
-RUN npm install
-
-# Copy the rest of the application code to the container
+RUN npm ci --omit=dev  
 COPY . .
 
-FROM alpine:3.16.7
-
+# Stage 2: Runtime (Minimal Alpine)
+FROM alpine:3.16
 WORKDIR /app
 
-RUN apk update && apk add npm
+# Install only necessary runtime dependencies
+RUN apk add --no-cache nodejs && \
+    adduser -D myuser && \
+    chown -R myuser:myuser /app
 
-COPY --from=build /usr/src/app /app
+# Copy built files from builder
+COPY --from=builder --chown=myuser:myuser /usr/src/app ./
 
-# Expose the port the app runs on
+# Runtime configuration
+USER myuser
 EXPOSE 3000
-
-# Define the command to run your app
+HEALTHCHECK --interval=30s --timeout=5s \
+    CMD curl -f http://localhost:3000 || exit 1
 CMD ["npm", "start"]
