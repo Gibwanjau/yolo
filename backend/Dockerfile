@@ -1,44 +1,35 @@
-# Use an official Node runtime as a parent image
-# Changed to 120MB Package
+# Stage 1: Builder - Install and build
+# Changed to smaller package
 FROM node:16-alpine AS builder
-
-# Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy the package.json and package-lock.json files to the container
+# Install production dependencies only
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Install application dependencies
-# Cleaner install
-RUN npm ci --only=production
-
-# Copy the rest of the application code to the container
+# Copy source and build
 COPY . .
+RUN npm run build
 
-#Add multi-stage build
-# Minimal Alpine
+# Stage 2: Runtime - Minimal production image
 FROM alpine:3.16
-
 WORKDIR /app
 
-# Install dependencies + SSH setup
-RUN apk add --no-cache nodejs openssh && \
-    adduser -D myuser -s /bin/sh -h /app && \
-    mkdir -p /app/.ssh && \
-    chown -R myuser:myuser /app && \
-    chmod 700 /app/.ssh
+# Install runtime dependencies
+RUN apk add --no-cache nodejs && \
+    addgroup -S appgroup && \
+    adduser -S appuser -G appgroup -h /app -D && \
+    chown -R appuser:appgroup /app
 
-# Copy pre-authorized key build-time only
-COPY --chown=myuser:myuser  ./docker/deploy_key.pub /app/.ssh/authorized_keys
-RUN chmod 600 /app/.ssh/authorized_keys
+# Copy built application from builder
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/package*.json ./
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/build ./
 
-# Copy application files
-COPY --from=builder --chown=myuser:myuser /usr/src/app ./
-
-USER myuser
-EXPOSE 5000 22
+# Runtime configuration
+USER appuser
+ENV NODE_ENV=production
+EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=3s \
     CMD curl -f http://localhost:5000/health || exit 1
-
-# Start both SSH and Node
-CMD ["sh", "-c", "sudo /usr/sbin/sshd -D & node server.js"]
+CMD ["node", "server.js"]
