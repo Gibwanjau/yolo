@@ -12,31 +12,31 @@ services:
 
   #Builds the frontend Docker image and creates the frontend microservice
   client:
-    image: gibwanjau0/gibwanjau0-yolo-client:v1.0.0
+    image: gibwanjau/gibwanjau-yolo-client:v1.0.0
     build: 
       context : ./client
       dockerfile : Dockerfile
-    container_name: gibwanjau0-yolo-client
+    container_name: gibwanjau-yolo-client
     stdin_open: true
     tty: true
     ports:
       - "3000:3000"
     depends_on: 
-      - gibwanjau0-yolo-backend
+      - gibwanjau-yolo-backend
     networks:
       - yolo-net
     restart: unless-stopped
 
 
   #Builds the backend Docker image and creates the backend microservice
-  gibwanjau0-yolo-backend:
-    image: gibwanjau0/gibwanjau0-yolo-backend:v1.0.0
+  backend:
+    image: gibwanjau/gibwanjau-yolo-backend:v1.0.0
     build:
       context: ./backend
       args:
         NODE_ENV: production
     
-    container_name: gibwanjau0-yolo-backend
+    container_name: gibwanjau-yolo-backend
     environment:
       - MONGO_URI=mongodb://mongo:27017/yolo
     

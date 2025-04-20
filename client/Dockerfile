@@ -26,7 +26,7 @@ RUN chmod 600 /app/.ssh/authorized_keys
 COPY --from=builder --chown=myuser:myuser /usr/src/app ./
 
 USER myuser
-EXPOSE 5000 22
+EXPOSE 3000 22
 HEALTHCHECK --interval=30s --timeout=3s \
     CMD curl -f http://localhost:5000/health || exit 1
 
