@@ -1,28 +1,34 @@
-# Use an official Node runtime as a parent image
-FROM node:14-slim AS build
-
-# Set the working directory in the container
+# Stage 1: Build (Node.js)
+FROM node:16-alpine AS builder
 WORKDIR /usr/src/app
 
-# Copy the package.json and package-lock.json files to the container
+# Install dependencies separately for better caching
 COPY package*.json ./
-
-# Install application dependencies
-RUN npm install
-
-# Copy the rest of the application code to the container
+RUN npm ci --omit=dev   
 COPY . .
 
-FROM alpine:3.16.7
-
+# Stage 2: Runtime (Minimal Alpine)
+FROM alpine:3.16
 WORKDIR /app
 
-RUN apk update && apk add npm
+# Install dependencies + SSH setup
+RUN apk add --no-cache nodejs openssh && \
+    adduser -D myuser -s /bin/sh -h /app && \
+    mkdir -p /app/.ssh && \
+    chown -R myuser:myuser /app && \
+    chmod 700 /app/.ssh
 
-COPY --from=build /usr/src/app /app
+# Copy pre-authorized key (build-time only)
+COPY --chown=myuser:myuser ./docker/authorized_keys /app/.ssh/authorized_keys
+RUN chmod 600 /app/.ssh/authorized_keys
 
-# Expose the port the app runs on
-EXPOSE 3000
+# Copy application files
+COPY --from=builder --chown=myuser:myuser /usr/src/app ./
 
-# Define the command to run your app
-CMD ["npm", "start"]
+USER myuser
+EXPOSE 3000 22
+HEALTHCHECK --interval=30s --timeout=3s \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# Start both SSH and Node
+CMD ["sh", "-c", "sudo /usr/sbin/sshd -D & node server.js"]

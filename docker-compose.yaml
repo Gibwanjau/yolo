@@ -11,51 +11,68 @@ version: "3.8"
 services:
 
   #Builds the frontend Docker image and creates the frontend microservice
-  brian-yolo-client:
-    image: brianbwire/brian-yolo-client:v1.0.0
-    build: ./client
-    container_name: brian-yolo-client
+  client:
+    image: gibwanjau/gibwanjau-yolo-client:v1.0.0
+    build: 
+      context : ./client
+      dockerfile : Dockerfile
+    container_name: gibwanjau-yolo-client
     stdin_open: true
     tty: true
     ports:
       - "3000:3000"
     depends_on: 
-      - brian-yolo-backend
+      - gibwanjau-yolo-backend
     networks:
-      - app-net
+      - yolo-net
+    restart: unless-stopped
+
 
   #Builds the backend Docker image and creates the backend microservice
-  brian-yolo-backend:
-    image: brianbwire/brian-yolo-backend:v1.0.0
-    build: ./backend
-    container_name: brian-yolo-backend
+  backend:
+    image: gibwanjau/gibwanjau-yolo-backend:v1.0.0
+    build:
+      context: ./backend
+      args:
+        NODE_ENV: production
+    
+    container_name: gibwanjau-yolo-backend
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/yolo
+    
     stdin_open: true
     tty: true
+
     restart: always
+
     ports:
       - "5000:5000"
     depends_on: 
-      - app-ip-mongo
+      - mongo
     networks:
-      - app-net
+      - yolo-net
+
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 5s
 
   #Creates the database microservice
-  app-ip-mongo:
-    image: mongo
-    container_name: app-mongo
+  mongo:
+    image: mongo6.0
+    container_name: yolo-mongo
     ports:
       - "27017:27017"
     networks:
-      - app-net
+      - yolo-net
     volumes:
-      - type: volume
-        source: app-mongo-data
-        target: /data/db
+      - yolo-mongo-data:/data/db
+    restart: always
 
 #Creates the network infrastructure necessary for the containers to communicate with each other
 networks:
-  app-net:
-    name: app-net
+  yolo-net:
+    name: yolo-net
     driver: bridge
     attachable: true
     ipam:
@@ -65,5 +82,5 @@ networks:
 
 #Creates a Docker volume that persists all the data stored in the database
 volumes:
-  app-mongo-data:
+  yolo-mongo-data:
     driver: local
