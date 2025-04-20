@@ -18,7 +18,7 @@ jobs:
 
       - name: Build and Push
         run: |
-          docker build -f Dockerfile.prod -t gibwanjau0/gibwanjau0-yolo-client:v1.0.0:${{ github.ref_name }} ./client
-          docker build -f Dockerfile.prod -t gibwanjau0/gibwanjau0-yolo-backend:v1.0.0:${{ github.ref_name }} ./backend
-          docker push yourrepo/yolo-client:${{ github.ref_name }}
-          docker push yourrepo/yolo-backend:${{ github.ref_name }}
+          docker build -f Dockerfile.prod -t gibwanjau/gibwanjau-yolo-client:v1.0.0:${{ github.ref_name }} ./client
+          docker build -f Dockerfile.prod -t gibwanjau/gibwanjau-yolo-backend:v1.0.0:${{ github.ref_name }} ./backend
+          docker push gibwanjau/gibwanjau-yolo-client:${{ github.ref_name }}
+          docker push gibwanjau/gibwanjau-yolo-backend:${{ github.ref_name }}
