@@ -1,30 +1,46 @@
-# Stage 1: Build (Node.js)
+# Stage 1: Builder - Production-ready build
 FROM node:16-alpine AS builder
 WORKDIR /usr/src/app
 
-# Install production dependencies only (better caching)
+# 1. Install ONLY production dependencies (cached layer)
 COPY package*.json ./
-RUN npm ci --omit=dev
-COPY . .
+RUN npm ci --omit=dev --ignore-scripts
 
-# Stage 2: Runtime (Minimal Alpine)
+# 2. Copy source and build (separate layer)
+COPY . .
+RUN npm run build && \
+    npm prune --production && \
+    rm -rf /usr/src/app/.npm /usr/src/app/.cache
+
+# Stage 2: Runtime - Minimal secure image
 FROM alpine:3.16
 WORKDIR /app
 
-# Install only necessary runtime dependencies
-RUN apk add --no-cache nodejs && \
+# Install runtime with security hardening
+RUN apk add --no-cache \
+    nodejs~=16 \
+    tini=~0.19 && \
     addgroup -S appgroup && \
-    adduser -S appuser -G appgroup -h /app -D && \
-    chown -R appuser:appgroup /app
+    adduser -S appuser -G appgroup -h /app -D -s /bin/false && \
+    chmod 750 /app
 
-# Copy built application from builder
-COPY --from=builder --chown=appuser:appgroup /usr/src/app/node_modules ./node_modules
-COPY --from=builder --chown=appuser:appgroup /usr/src/app/package*.json ./
-COPY --from=builder --chown=appuser:appgroup /usr/src/app ./
+# Copy only necessary production artifacts
+COPY --from=builder --chown=appuser:appgroup \
+    /usr/src/app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup \
+    /usr/src/app/package*.json ./
+COPY --from=builder --chown=appuser:appgroup \
+    /usr/src/app/build ./
 
-# Runtime configuration
+# Production runtime configuration
 USER appuser
+ENV NODE_ENV=production \
+    PORT=3000 \
+    NODE_OPTIONS="--enable-source-maps --max-old-space-size=512"
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=3s \
-    CMD curl -f http://localhost:3000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s \
+    --start-period=10s \
+    --retries=3 \
+    CMD curl -f http://localhost:$PORT/health || exit 1
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "server.js"]

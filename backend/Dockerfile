@@ -1,35 +1,39 @@
 # Stage 1: Builder - Install and build
-# Changed to smaller package
 FROM node:16-alpine AS builder
 WORKDIR /usr/src/app
 
-# Install production dependencies only
+# 1. Install dependencies (layer cached separately)
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Copy source and build
+# 2. Copy source and build (separate layer)
 COPY . .
-RUN npm run build
+RUN npm run build && \
+    npm prune --production  # Remove dev dependencies
 
 # Stage 2: Runtime - Minimal production image
 FROM alpine:3.16
 WORKDIR /app
 
-# Install runtime dependencies
+# Install only necessary runtime deps
 RUN apk add --no-cache nodejs && \
     addgroup -S appgroup && \
     adduser -S appuser -G appgroup -h /app -D && \
-    chown -R appuser:appgroup /app
+    chmod 750 /app
 
-# Copy built application from builder
-COPY --from=builder --chown=appuser:appgroup /usr/src/app/node_modules ./node_modules
-COPY --from=builder --chown=appuser:appgroup /usr/src/app/package*.json ./
-COPY --from=builder --chown=appuser:appgroup /usr/src/app/build ./
+# Copy only production artifacts
+COPY --from=builder --chown=appuser:appgroup \
+    /usr/src/app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup \
+    /usr/src/app/package*.json ./
+COPY --from=builder --chown=appuser:appgroup \
+    /usr/src/app/build ./
 
-# Runtime configuration
+# Runtime config
 USER appuser
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+    PORT=5000
 EXPOSE 5000
-HEALTHCHECK --interval=30s --timeout=3s \
-    CMD curl -f http://localhost:5000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s \
+    CMD curl -f http://localhost:$PORT/health || exit 1
 CMD ["node", "server.js"]
