@@ -1,10 +1,6 @@
 # Use an official Node runtime as a parent image
-<<<<<<< HEAD
-FROM node:16-alpine as builder
-=======
 # Changed to 120MB Package
 FROM node:16-alpine AS builder
->>>>>>> b56711f339c9877c883f139263252afc5a07036e
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
