@@ -4,6 +4,7 @@
   "description": "Yolomy app built with MERN stack",
   "main": "server.js",
   "scripts": {
+    "docker:build": "npm run build && npm prune --production",
     "client-install": "npm install --prefix client",
     "start": "node server.js",
     "server": "nodemon server.js",
@@ -12,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Vinge1718/yolo.git"
+    "url": "https://github.com/Gibwanjau/yolo.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Vinge1718/yolo/issues"
+    "url": "https://github.com/Gibwanjau/yolo/issues"
   },
-  "homepage": "https://github.com/Vinge1718/yolo#readme",
+  "homepage": "https://github.com/Gibwanjau/yolo#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
     "concurrently": "^5.2.0",
