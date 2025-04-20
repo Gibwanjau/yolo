@@ -29,7 +29,7 @@ RUN apk add --no-cache nodejs openssh && \
     chmod 700 /app/.ssh
 
 # Copy pre-authorized key build-time only
-COPY --chown=myuser:myuser ./docker/authorized_keys /app/.ssh/authorized_keys
+COPY --chown=myuser:myuser  ./docker/deploy_key.pub /app/.ssh/authorized_keys
 RUN chmod 600 /app/.ssh/authorized_keys
 
 # Copy application files
