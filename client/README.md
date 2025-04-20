@@ -66,3 +66,30 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/de
 ### `npm run build` fails to minify
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+
+
+# YOLO Web Client
+
+![React](https://img.shields.io/badge/React-18-blue)
+![Vite](https://img.shields.io/badge/Vite-4.x-yellow)
+![Docker](https://img.shields.io/badge/Docker-optimized-green)
+
+## Table of Contents
+- [Features](#features)
+- [Setup](#setup)
+- [Development](#development)
+- [Build](#build)
+- [Deployment](#deployment)
+- [Environment Variables](#environment-variables)
+
+## Features
+- Real-time object detection
+- Model training interface
+- Responsive design
+- Docker optimized image (~45MB)
+
+## Setup
+```bash
+git clone https://github.com/Vinge1718/yolo.git
+cd yolo/client
+npm install
