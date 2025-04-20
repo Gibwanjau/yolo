@@ -22,7 +22,7 @@ services:
     ports:
       - "3000:3000"
     depends_on: 
-      - gibwanjau-yolo-backend
+      - backend
     networks:
       - yolo-net
     restart: unless-stopped
