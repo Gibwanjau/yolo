@@ -7,3 +7,5 @@ vault.yml
 .vscode
 .vscode/*
 .vscode/*.json
+docker/deploy_key
+docker/*.key
