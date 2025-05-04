@@ -7,6 +7,6 @@
 
   roles:
     - role: common
-    - role: database
-    - role: backend
-    - role: frontend
+    - role: mongoDB
+    - role: backend-deployment
+    - role: frontend-deployment
