@@ -8,5 +8,5 @@
   roles:
     - role: common
     - role: mongoDB
-    - role: backend-deployment
-    - role: frontend-deployment
+    - role: backend
+    - role: frontend
