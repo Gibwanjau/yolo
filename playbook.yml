@@ -1,0 +1,12 @@
+---
+- name: Configure and deploy e-commerce application
+  hosts: web
+  become: true
+  vars_files:
+    - group_vars/all.yml
+
+  roles:
+    - role: common
+    - role: mongoDB
+    - role: backend
+    - role: frontend

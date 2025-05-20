@@ -1,0 +1,158 @@
+# #This file builds the Docker images for a React/NodeJS application and runs it as microservices on Docker containers
+
+# #To ensure successful execution, clone this entire repository and execute this file while in the root folder of the cloned repository
+
+# #It's also a requirement to have Docker and the docker-compose plugin installed in your environment
+
+# #To launch this app without having to clone the entire repository,use the docker-compose.yaml file to run the app
+
+# version: "3.8"
+
+# services:
+
+#   #Builds the frontend Docker image and creates the frontend microservice
+#   client:
+#     image: gibwanjau/gibwanjau-yolo-client:v1.0.0
+#     build: 
+#       context : ./client
+#       dockerfile : Dockerfile
+#     container_name: gibwanjau-yolo-client
+#     stdin_open: true
+#     tty: true
+#     ports:
+#       - "3000:3000"
+#     depends_on: 
+#       - backend
+#     networks:
+#       - yolo-net
+#     restart: unless-stopped
+
+
+#   #Builds the backend Docker image and creates the backend microservice
+#   backend:
+#     image: gibwanjau/gibwanjau-yolo-backend:v1.0.0
+#     build:
+#       context: ./backend
+#       args:
+#         NODE_ENV: production
+#     tty: true
+
+#     restart: always
+
+#     ports:
+#       - "5000:5000"
+#     depends_on: 
+#       - mongo
+#     networks:
+#       - yolo-net
+
+#     healthcheck:
+#       test: ["CMD", "node", "healthcheck.js"]
+#       interval: 30s
+#       timeout: 5s
+
+#   #Creates the database microservice
+#   mongo:
+#     image: mongo:6.0
+#     container_name: yolo-mongo
+#     ports:
+#       - "27017:27017"
+#     networks:
+#       - yolo-net
+#     volumes:
+#       - yolo-mongo-data:/data/db
+#     restart: always
+
+# #Creates the network infrastructure necessary for the containers to communicate with each other
+# networks:
+#   yolo-net:
+#     name: yolo-net
+#     driver: bridge
+#     ipam:
+#       config:
+#         - subnet: 172.20.0.0/16 
+#           ip_range: 172.20.0.0/16 
+
+# #Creates a Docker volume that persists all the data stored in the database
+# volumes:
+#   yolo-mongo-data:
+#     driver: local
+
+
+version: "3.8"
+
+#specify the services to run
+services:
+
+  #Builds the frontend Docker image and creates the frontend microservice
+  yolo-frontend:
+    image: gibwanjau/yolo-client:v1.0.0
+    build: 
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: yolo-client
+    stdin_open: true
+    tty: true
+    ports:
+      - "3000:3000"
+    depends_on: 
+      - yolo-backend
+    networks:
+      - mynetwork
+    # volumes:
+    #   - ./client:/home/vagrant/YoloApp/client
+
+  #Builds the backend Docker image and creates the backend microservice
+  yolo-backend:
+    image: gibwanjau/yolo-backend:v1.0.0
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: yolo-backend
+    stdin_open: true
+    tty: true
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on: 
+      - mongodb
+      # mongodb:
+      #   condition: service_healthy
+    networks:
+      - mynetwork
+    # volumes:
+    #   - ./backend:/home/vagrant/YoloApp/backend
+
+  #Creates the database microservice
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - mynetwork
+    volumes:
+      - type: volume
+        source: mongodb_data
+        target: /data/db
+    # healthcheck:
+    #   test: ["CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
+
+#Creates the network infrastructure necessary for the containers to communicate with each other
+networks:
+  mynetwork:
+    name: mynetwork
+    driver: bridge
+    attachable: true
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 
+          ip_range: 172.20.0.0/16 
+
+#Creates a Docker volume that persists all the data stored in the database
+volumes:
+  mongodb_data:
+    driver: local
